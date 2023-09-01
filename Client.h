@@ -21,7 +21,7 @@ public:
             throw std::runtime_error("Error creating socket: ");
         }
         server_address.sin_family = AF_INET;
-        server_address.sin_port = htons(8080);
+        server_address.sin_port = htons(8090);
         inet_pton(AF_INET, "127.0.0.1", &server_address.sin_addr);
     }
 
@@ -46,6 +46,10 @@ public:
             {
                 throw std::runtime_error("Error receiving data: ");
             }
+        }
+        if(buffer[0]==Quit)
+        {
+            delete this;
         }
         std::cout<<buffer<<"\n";
     }

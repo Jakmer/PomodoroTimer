@@ -6,6 +6,8 @@
 #include "EChoice.h"
 #include <thread>
 #include <vector>
+#include <mutex>
+#include "Timer.h"
 
 class Server
 {
@@ -13,10 +15,17 @@ private:
     int server_fd;
     sockaddr_in server_address;
     std::vector<std::thread> client_threads;
+    std::mutex &mtx;
 
     void handle_client(int &&client_fd)
     {
-        char buffer[1024];
+        std::lock_guard<std::mutex> lock(mtx);
+        
+        const size_t SIZE = 1024;
+        char buffer[SIZE];
+        
+        Timer timer {buffer};
+
         while (buffer[0] != Quit)
         {
 
@@ -32,6 +41,8 @@ private:
                     throw std::runtime_error("Error receiving data: ");
                 }
             }
+        
+            timer.take_action();
 
             if (send(client_fd, &buffer, sizeof(buffer), 0) == -1)
             {
@@ -42,7 +53,7 @@ private:
     }
 
 public:
-    Server()
+    Server(std::mutex &mtx):mtx(mtx)
     {
         server_fd = socket(AF_INET, SOCK_STREAM, 0);
         if (server_fd == -1)
@@ -52,7 +63,7 @@ public:
 
         server_address.sin_family = AF_INET;
         server_address.sin_addr.s_addr = INADDR_ANY;
-        server_address.sin_port = htons(8080);
+        server_address.sin_port = htons(8090);
         inet_pton(AF_INET, "127.0.0.1", &server_address.sin_addr);
 
         if (bind(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) == -1)

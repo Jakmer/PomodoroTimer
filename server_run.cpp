@@ -1,12 +1,13 @@
 #include <iostream>
 #include "Server.h"
 #include <cstring>
+#include <mutex>
 
 int main()
 {
     try
-    {
-        Server server{};
+    {   std::mutex mtx;
+        Server server{mtx};
         server.startListening();
     }
     catch (const std::exception &e)

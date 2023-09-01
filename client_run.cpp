@@ -39,6 +39,7 @@ int main()
             case Stop:
             case Skip:
             case Restart:
+            case Get_time:
                 client.send_to_server(choice);
                 client.receive_from_server();
                 break;

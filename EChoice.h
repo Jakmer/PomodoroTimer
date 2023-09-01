@@ -9,6 +9,7 @@ enum Choice
     Stop,
     Skip,
     Restart,
+    Get_time,
     Quit,
     Unknown
 };
@@ -24,6 +25,7 @@ std::istream &operator>>(std::istream &is, Choice &choice)
     case Choice::Stop:
     case Choice::Skip:
     case Choice::Restart:
+    case Choice::Get_time:
     case Choice::Quit:
         choice = static_cast<Choice>(num);
         break;
