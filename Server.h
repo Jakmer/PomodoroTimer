@@ -63,7 +63,7 @@ public:
 
         server_address.sin_family = AF_INET;
         server_address.sin_addr.s_addr = INADDR_ANY;
-        server_address.sin_port = htons(8090);
+        server_address.sin_port = htons(8080);
         inet_pton(AF_INET, "127.0.0.1", &server_address.sin_addr);
 
         if (bind(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) == -1)
@@ -92,10 +92,10 @@ public:
 
     void startListening()
     {
-        while (true)    // jak wylaczyc serwer?
+        while (true)    
         {
             int client_fd = accept(server_fd, nullptr, nullptr);
-            std::cout << "fd " << client_fd << std::endl;
+
             if (client_fd == -1)
             {
                 throw std::runtime_error("Error accepting client connection: ");

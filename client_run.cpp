@@ -23,12 +23,13 @@ int main()
             std::cout << "2. Stop\n";
             std::cout << "3. Skip\n";
             std::cout << "4. Restart\n";
-            std::cout << "5. Quit\n";
+            std::cout << "4. Get time\n";
+            std::cout << "6. Quit\n";
 
             std::cout << "Enter (1-5) : ";
             std::cin >> choice;
 
-            //system("clear");
+            system("clear");
 
             switch (choice)
             {
