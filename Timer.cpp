@@ -75,6 +75,23 @@ void Timer::skip()
 void Timer::restart()
 {
     is_active = false;
+    if (pomodoro % 2 == 0)
+    {
+        remaining_time = WORK;
+    }
+    else
+    {
+        // w s w s w s w l
+        // 0 1 2 3 4 5 6 7
+        if ((pomodoro + 1) % 8 == 0)
+        {
+            remaining_time = LONG_BREAK;
+        }
+        else
+        {
+            remaining_time = SHORT_BREAK;
+        }
+    }
     time("Restart");
 }
 
