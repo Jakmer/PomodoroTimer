@@ -2,7 +2,7 @@
 
 void Server::handle_client(int &&client_fd)
 {
-    std::lock_guard<std::mutex> lock(mtx);
+    //std::lock_guard<std::mutex> lock(mtx);        klienci czekaja w kolejce gdu mutex lockuje blok kodu
 
     const size_t SIZE = 1024;
     char buffer[SIZE];

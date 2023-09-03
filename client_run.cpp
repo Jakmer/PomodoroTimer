@@ -23,10 +23,10 @@ int main()
             std::cout << "2. Stop\n";
             std::cout << "3. Skip\n";
             std::cout << "4. Restart\n";
-            std::cout << "4. Get time\n";
+            std::cout << "5. Get time\n";
             std::cout << "6. Quit\n";
 
-            std::cout << "Enter (1-5) : ";
+            std::cout << "Enter (1-6) : ";
             std::cin >> choice;
 
             system("clear");
