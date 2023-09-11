@@ -15,16 +15,15 @@ private:
     int server_fd;
     sockaddr_in server_address;
     std::vector<std::thread> client_threads;
-    std::mutex &mtx;
 
     void handle_client(int &&client_fd);
 
 public:
-    Server(std::mutex &mtx);
+    Server();
 
     ~Server();
 
-    void startListening();
+    void run();
 };
 
 #endif

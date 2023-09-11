@@ -2,17 +2,17 @@
 
 void Server::handle_client(int &&client_fd)
 {
-    //std::lock_guard<std::mutex> lock(mtx);        klienci czekaja w kolejce gdu mutex lockuje blok kodu
-
     const size_t SIZE = 1024;
     char buffer[SIZE];
+    Choice choice;
+    Timer timer{};
 
-    Timer timer{buffer};
-
-    while (buffer[0] != Quit)
+    do
     {
 
-        int bytesReceived = recv(client_fd, buffer, sizeof(buffer), 0);
+        int bytesReceived = recv(client_fd, buffer, sizeof(choice), 0);
+        if (errno == EAGAIN)
+            continue;
         if (bytesReceived <= 0)
         {
             if (bytesReceived == 0)
@@ -25,17 +25,24 @@ void Server::handle_client(int &&client_fd)
             }
         }
 
-        timer.take_action();
+        choice = static_cast<Choice>(buffer[0]);
+
+        strcpy(buffer, timer.take_action(choice).c_str());
 
         if (send(client_fd, &buffer, sizeof(buffer), 0) == -1)
         {
+            if (errno == EAGAIN)
+                continue;
             throw std::runtime_error("Error sending to server: ");
         }
-    }
-    std::cout << "Client [" << client_fd << "] disconnected\n";
+    } while (choice != Quit);
+
+    std::cout
+        << "Client [" << client_fd << "] disconnected\n";
+    close(client_fd);
 }
 
-Server::Server(std::mutex &mtx) : mtx(mtx)
+Server::Server()
 {
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == -1)
@@ -62,7 +69,6 @@ Server::Server(std::mutex &mtx) : mtx(mtx)
 
 Server::~Server()
 {
-    close(server_fd);
     for (auto &thread : client_threads)
     {
         if (thread.joinable())
@@ -70,9 +76,10 @@ Server::~Server()
             thread.join();
         }
     }
+    close(server_fd);
 }
 
-void Server::startListening()
+void Server::run()
 {
     while (true)
     {
@@ -80,6 +87,7 @@ void Server::startListening()
 
         if (client_fd == -1)
         {
+            close(client_fd);
             throw std::runtime_error("Error accepting client connection: ");
         }
         std::cout << "Client [" << client_fd << "] connected" << std::endl;

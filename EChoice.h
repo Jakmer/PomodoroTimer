@@ -16,4 +16,6 @@ enum Choice
 
 std::istream &operator>>(std::istream &is, Choice &choice);
 
+std::ostream &operator<<(std::ostream &os, Choice &choice);
+
 #endif

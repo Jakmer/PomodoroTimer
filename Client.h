@@ -11,15 +11,18 @@ private:
     int client_fd;
     sockaddr_in server_address;
     char buffer[1024];
+    Choice choice;
+
+    void connect_to_server();
+
+    std::string receive_from_server();
+
+    void send_to_server(Choice &choice);
 
 public:
     Client();
 
-    void connect_to_server();
-
-    void receive_from_server();
-
-    void send_to_server(Choice &choice);
+    void run();
 
     ~Client();
 

@@ -1,12 +1,11 @@
 #include "Timer.h"
 
-Timer::Timer(char (&buff)[1024]) : is_active(false), pomodoro(0), buffer(buff), interval_thread(&Timer::handle_time, this), stop_flag(false), remaining_time(WORK)
-    {
-    }
-
-void Timer::take_action()
+Timer::Timer() : is_active(false), pomodoro(0), interval_thread(&Timer::handle_time, this), stop_flag(false), remaining_time(WORK)
 {
-    Choice choice = static_cast<Choice>(buffer[0]);
+}
+
+std::string Timer::take_action(Choice &choice)
+{
 
     switch (choice)
     {
@@ -23,29 +22,30 @@ void Timer::take_action()
         restart();
         break;
     case Get_time:
-        get_time();
         break;
     case Quit:
-        quit(choice);
+        quit();
         break;
     default:
 
         throw std::runtime_error("Unrecognised action in timer: ");
-        return;
+        return "";
         break;
     }
+
+    return get_time();
 }
 
 void Timer::start()
 {
     is_active = true;
-    time("Start");
+    get_time();
 }
 
 void Timer::stop()
 {
     is_active = false;
-    time("Stop");
+    get_time();
 }
 
 void Timer::skip()
@@ -69,7 +69,7 @@ void Timer::skip()
             remaining_time = SHORT_BREAK;
         }
     }
-    time("Skip");
+    get_time();
 }
 
 void Timer::restart()
@@ -92,17 +92,11 @@ void Timer::restart()
             remaining_time = SHORT_BREAK;
         }
     }
-    time("Restart");
+    get_time();
 }
 
-void Timer::get_time()
+void Timer::quit()
 {
-    time("Get time");
-}
-
-void Timer::quit(Choice &choice)
-{
-    buffer[0] = choice;
     stop_flag = true;
 }
 
@@ -124,7 +118,7 @@ void Timer::handle_time()
     }
 }
 
-void Timer::time(std::string &&label)
+std::string Timer::get_time()
 {
     int minutes = std::chrono::duration_cast<std::chrono::minutes>(remaining_time).count();
     int seconds = std::chrono::duration_cast<std::chrono::seconds>(remaining_time % std::chrono::minutes(1)).count();
@@ -132,9 +126,9 @@ void Timer::time(std::string &&label)
     std::string minutes_str = std::to_string(minutes);
     std::string seconds_str = std::to_string(seconds);
 
-    std::string response = label + " - time left: " + minutes_str + "m " + seconds_str + "s";
+    std::string response = minutes_str + "m " + seconds_str +"s";
 
-    strcpy(buffer, response.c_str());
+    return response;
 }
 
 Timer::~Timer()

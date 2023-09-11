@@ -15,9 +15,8 @@ class Timer
 
     std::chrono::duration<int, std::milli> remaining_time;
     bool is_active, stop_flag;
-    int pomodoro;
-    char *buffer;                // tutaj pownien byc smart czy raw pointer
-    std::thread interval_thread; //  ten watek tez powinien miec mutexa? jesli tak to czy tego samego co watki klasy Server?
+    int pomodoro;               
+    std::thread interval_thread;
 
     void start();
 
@@ -27,18 +26,16 @@ class Timer
 
     void restart();
 
-    void get_time();
-
-    void quit(Choice &choice);
+    void quit();
 
     void handle_time();
 
-    void time(std::string &&label);
+    std::string get_time();
 
 public:
-    Timer(char (&buff)[1024]);
+    Timer();
 
-    void take_action();
+    std::string take_action(Choice &choice);
 
     ~Timer();
 };
