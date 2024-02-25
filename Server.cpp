@@ -1,6 +1,7 @@
 #include "Server.hpp"
+#include <unistd.h>
 
-Server::Server() : isServerActive(true)
+Server::Server()
 {
     setup();
 }
@@ -9,35 +10,37 @@ void Server::setup()
 {
     try
     {
-        // creating socket
         if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
         {
             throw std::runtime_error("Server: Couldn't create socket");
         }
 
-        // address specification
         sockaddr_in serverAddress;
         serverAddress.sin_family = AF_INET;
         serverAddress.sin_port = htons(8080);
         serverAddress.sin_addr.s_addr = INADDR_ANY;
 
-        // binding socket
         if (bind(server_fd, (struct sockaddr *)&serverAddress,
                  sizeof(serverAddress)) == -1)
         {
             throw std::runtime_error("Server: Couldn't bind socket");
         }
 
-        // listening for upcoming connections
         if (listen(server_fd, 5) == -1)
         {
             throw std::runtime_error("Server: Couldn't listen for connection");
         }
+
+        isServerActive = true;
     }
     catch (const std::exception &e)
     {
         std::cerr << e.what() << '\n';
-        // TODO: do sth to not execute next functions
+        if (server_fd != -1)
+        {
+            close(server_fd);
+            isServerActive = false;
+        }
     }
 }
 
@@ -51,6 +54,11 @@ void Server::acceptClients()
         {
             if ((client_fd = accept(server_fd, nullptr, nullptr)) == -1)
             {
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
+                {
+                    continue;
+                }
+
                 throw std::runtime_error("Server: Couldn't accept client socket");
             }
 
@@ -89,7 +97,7 @@ void Server::commandHandler(std::string &&command)
     }
     else
     {
-        // Invalid command
+        // Invalid command lets ignore that client
     }
 }
 
@@ -99,10 +107,9 @@ void Server::timeDisplayer()
     {
         system("clear");
         std::lock_guard<std::mutex> guard(timerMutex);
-        const std::string ANSI_ESCAPE = "\u001b[" + std::to_string(displayColor)+"m";
-        std::cout << ANSI_ESCAPE<<"Time left: "<<timer.getTime()<<displayColor<<"\u001b[0m\n";
+        const std::string ANSI_ESCAPE = "\u001b[" + std::to_string(displayColor) + "m";
+        std::cout << ANSI_ESCAPE << "Time left: " << timer.getTime() << "\u001b[0m\n";
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
     }
 }
 
@@ -125,13 +132,16 @@ void Server::executeCommands()
 
 void Server::run()
 {
-    std::thread t1(&Server::acceptClients, this);
-    std::thread t2(&Server::executeCommands, this);
-    std::thread t3(&Server::timeDisplayer, this);
+    if(isServerActive)
+    {
+        std::thread t1(&Server::acceptClients, this);
+        std::thread t2(&Server::executeCommands, this);
+        std::thread t3(&Server::timeDisplayer, this);
 
-    t1.join();
-    t2.join();
-    t3.join();
+        t1.join();
+        t2.join();
+        t3.join();
+    }
 }
 
 void Server::handleClient(int &client_fd)
@@ -155,6 +165,8 @@ void Server::handleClient(int &client_fd)
             std::cerr << e.what() << '\n';
         }
     } while (errno == EAGAIN);
+
+    close(client_fd);
 }
 
 Server::~Server()
@@ -163,4 +175,5 @@ Server::~Server()
     {
         client.join();
     }
+    close(server_fd);
 }

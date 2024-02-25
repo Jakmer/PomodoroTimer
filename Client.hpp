@@ -18,6 +18,7 @@ private:
 public:
     Client(Message &msg);
     void run();
+    ~Client();
 };
 
 #endif

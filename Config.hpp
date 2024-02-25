@@ -6,7 +6,6 @@
 
 #define BUFFER_SIZE 16
 
-// Colors
 extern std::map<std::string, int> COLORS;
 
 

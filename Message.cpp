@@ -32,6 +32,10 @@ void Message::deserialize(char *serialized_msg)
     }
 }
 
+Message::Message(){
+
+}
+
 Message::Message(char *serialized_msg)
 {
     deserialize(serialized_msg);
@@ -74,6 +78,8 @@ char *Message::serialize()
             strcat(buffer, ";");
 
             strcat(buffer, std::to_string(color).c_str());
+
+            
         }
         else
         {

@@ -1,20 +1,18 @@
 #include "Client.hpp"
+#include <unistd.h>
 
 void Client::setup()
 {
-    // creating socket
     if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
         throw std::runtime_error("Client: Couldn't create socket");
     }
 
-    // address specification
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(8080);
     serverAddress.sin_addr.s_addr = INADDR_ANY;
 
-    // connect server
     if (connect(client_fd, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1)
     {
         throw std::runtime_error("Client: Couldn't connect server");
@@ -71,5 +69,10 @@ void Client::request()
 
 void Client::run()
 {
-    request();  // for now, client sends only 1 command taken from program arguments
+    request(); // for now, client sends only 1 command taken from program arguments
+}
+
+Client::~Client()
+{
+    close(client_fd);
 }
