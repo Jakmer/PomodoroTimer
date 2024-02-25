@@ -11,6 +11,8 @@
 #include <thread>
 #include <sys/socket.h>
 #include <mutex>
+#include "chrono"
+#include "Config.hpp"
 
 class Server
 {
@@ -21,13 +23,17 @@ private:
     std::vector<std::thread> clients;
     std::queue<Message> commands;
     Timer timer;
-    std::mutex mutex;
+    std::mutex commandMutex;
+    std::mutex timerMutex;
+    int displayColor;
     bool isServerActive;
 
     void setup();
     void handleClient(int &client_fd);
     void executeCommands();
     void acceptClients();
+    void commandHandler(std::string &&command);
+    void timeDisplayer();
 
 public:
 

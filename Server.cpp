@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server():isServerActive(true)
+Server::Server() : isServerActive(true)
 {
     setup();
 }
@@ -43,7 +43,7 @@ void Server::setup()
 
 void Server::acceptClients()
 {
-    while (true)
+    while (isServerActive)
     {
         int client_fd;
 
@@ -54,7 +54,7 @@ void Server::acceptClients()
                 throw std::runtime_error("Server: Couldn't accept client socket");
             }
 
-            clients.emplace_back(&Server::handleClient,this, std::ref(client_fd));
+            clients.emplace_back(&Server::handleClient, this, std::ref(client_fd));
         }
         catch (std::exception &e)
         {
@@ -63,33 +63,80 @@ void Server::acceptClients()
     }
 }
 
+void Server::commandHandler(std::string &&command)
+{
+    std::lock_guard<std::mutex> guard(timerMutex);
+
+    if (command == "Start")
+    {
+        timer.start();
+    }
+    else if (command == "Stop")
+    {
+        timer.stop();
+    }
+    else if (command == "Skip")
+    {
+        timer.skip();
+    }
+    else if (command == "Restart")
+    {
+        timer.restart();
+    }
+    else if (command == "Close")
+    {
+        isServerActive = false;
+    }
+    else
+    {
+        // Invalid command
+    }
+}
+
+void Server::timeDisplayer()
+{
+    while (isServerActive)
+    {
+        system("clear");
+        std::lock_guard<std::mutex> guard(timerMutex);
+        const std::string ANSI_ESCAPE = "\u001b[" + std::to_string(displayColor)+"m";
+        std::cout << ANSI_ESCAPE<<"Time left: "<<timer.getTime()<<displayColor<<"\u001b[0m\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    }
+}
+
 void Server::executeCommands()
 {
-    while(true)
+
+    while (isServerActive)
     {
-        std::lock_guard<std::mutex> guard(mutex);
-        if(!commands.empty())
+        std::lock_guard<std::mutex> guard(commandMutex);
+        if (!commands.empty())
         {
             Message msg{commands.front()};
             commands.pop();
 
-            std::cout<<msg.getCommand()<<" "<<msg.getColor()<<std::endl;
+            displayColor = msg.getColor();
+            commandHandler(msg.getCommand());
         }
     }
 }
 
 void Server::run()
 {
-    std::thread t1(&Server::acceptClients,this);
+    std::thread t1(&Server::acceptClients, this);
     std::thread t2(&Server::executeCommands, this);
+    std::thread t3(&Server::timeDisplayer, this);
 
     t1.join();
     t2.join();
+    t3.join();
 }
 
 void Server::handleClient(int &client_fd)
 {
-    char buffer[1024];
+    char buffer[BUFFER_SIZE];
 
     do
     {
@@ -100,7 +147,7 @@ void Server::handleClient(int &client_fd)
                 throw std::runtime_error("Server: Couldn't receive request");
             }
 
-            std::lock_guard<std::mutex> guard(mutex);
+            std::lock_guard<std::mutex> guard(commandMutex);
             commands.emplace(buffer);
         }
         catch (const std::exception &e)
@@ -108,10 +155,12 @@ void Server::handleClient(int &client_fd)
             std::cerr << e.what() << '\n';
         }
     } while (errno == EAGAIN);
-
 }
 
 Server::~Server()
 {
-    //TODO
+    for (auto &client : clients)
+    {
+        client.join();
+    }
 }

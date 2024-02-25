@@ -2,8 +2,8 @@ CC = g++
 
 CFLAGS = -std=c++17 -Wall -Wextra -pedantic
 
-SERVER_SOURCES = Server_run.cpp Timer.cpp Server.cpp Message.cpp
-CLIENT_SOURCES = Client_run.cpp Client.cpp Message.cpp
+SERVER_SOURCES = Server_run.cpp Timer.cpp Server.cpp Message.cpp Config.cpp
+CLIENT_SOURCES = Client_run.cpp Client.cpp Message.cpp Config.cpp
 
 BIN = bin/
 SERVER_EXECUTABLE = $(BIN)server

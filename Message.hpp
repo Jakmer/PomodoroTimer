@@ -1,6 +1,7 @@
 #ifndef MESSAGE
 #define MESSAGE
 #include <iostream>
+#include "Config.hpp"
 
 class Message
 {
@@ -9,7 +10,7 @@ private:
     std::string command;
     int color; // This will change color of server's timer display - it is for this class to have more sense
 
-    int colorAnalyzer(char *color);
+    int colorAnalyzer(std::string &color);
     void deserialize(char *serialized_msg);
 
 public:
